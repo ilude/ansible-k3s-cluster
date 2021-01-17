@@ -1,0 +1,20 @@
+  - snap remove lxd
+  - snap remove core18
+  - snap remove snapd
+  - apt purge snapd -y
+  - rm -f /etc/apt/apt.conf.d/*snapd*
+  - apt dist-upgrade -y
+  - apt purge -y inetd nmap-ncat prelink rsh-server telnet-server wpa_supplicant ypserv xinetd
+  - apt autoremove -y
+  - apt autoclean -y
+  - sed -i 's/^ENABLED=.*/ENABLED=0/' /etc/default/motd-news
+  - chmod -x /etc/update-motd.d/50-motd-news
+  - chmod -x /etc/update-motd.d/80-livepatch
+  - chmod -x /etc/update-motd.d/10-help-text
+  - sed -i 's/^APT::Periodic::Update-Package-Lists.*/APT::Periodic::Update-Package-Lists "1";/' /etc/apt/apt.conf.d/10periodic
+  - sed -i 's/^APT::Periodic::Download-Upgradeable-Packages.*/APT::Periodic::Download-Upgradeable-Packages "7";/' /etc/apt/apt.conf.d/10periodic
+  - sed -i 's/^APT::Periodic::AutocleanInterval.*/APT::Periodic::AutocleanInterval "7";/' /etc/apt/apt.conf.d/10periodic
+  - sed -i 's/^APT::Periodic::Update-Package-Lists.*/APT::Periodic::Update-Package-Lists "1";/' /etc/apt/apt.conf.d/10periodic
+  - grep -qxF 'APT::Periodic::Unattended-Upgrade' /etc/apt/apt.conf.d/10periodic || echo 'APT::Periodic::Unattended-Upgrade "7";' >> /etc/apt/apt.conf.d/10periodic
+  - systemctl enable qemu-guest-agent
+  - systemctl start qemu-guest-agent

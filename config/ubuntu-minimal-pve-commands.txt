@@ -1,0 +1,12 @@
+
+wget -nc https://cloud-images.ubuntu.com/minimal/releases/focal/release/ubuntu-20.04-minimal-cloudimg-amd64.img
+
+qm create 8001 --memory 2048 --cores 4 --machine q35 --bios ovmf --net0 virtio,bridge=vmbr0 
+qm importdisk 8001 ubuntu-20.04-minimal-cloudimg-amd64.img tank > /dev/null
+qm set 8001 --agent 1,fstrim_cloned_disks=1 
+qm set 8001 --scsihw virtio-scsi-pci 
+qm set 8001 --scsi0 tank:vm-8001-disk-0
+qm set 8001 --ide2 tank:cloudinit
+qm set 8001 --boot c --bootdisk scsi0
+qm set 8001 --serial0 socket --vga serial0
+qm set 8001 --ipconfig0 ip=dhcp

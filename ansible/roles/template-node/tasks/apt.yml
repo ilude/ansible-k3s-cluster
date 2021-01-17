@@ -1,0 +1,78 @@
+- name: update distribution
+  apt:
+    update_cache: yes
+    upgrade: dist
+
+- name: Install packages
+  apt:
+    install_recommends: no
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl 
+      - htop 
+      - iotop 
+      - libpam-systemd
+      - libssl-dev 
+      - nano 
+      - net-tools
+      - openssl 
+      - qemu-guest-agent 
+      - rsync 
+      - screen
+      - software-properties-common
+      - strace 
+      - sysstat 
+      - snmpd 
+      - sudo 
+      - tcpdump 
+      - tmux 
+      - unattended-upgrades
+      - vlan 
+      - vnstat
+
+- name: Install packages
+  apt:
+    state: absent
+    purge: yes
+    pkg:
+      - inetd
+      - nmap-ncat
+      - prelink
+      - rsh-server
+      - telnet-server
+      - ypserv
+      - wpa_supplicant
+      - xinetd
+
+- name: enable the systemd modules  
+  systemd:
+    state: started
+    name: "{{ item }}"
+    enabled: yes
+  with_items:
+  - "qemu-guest-agent"
+
+- name: set apt update interval
+  lineinfile:
+    path: /etc/apt/apt.conf.d/10periodic
+    regexp: '^APT::Periodic::Update-Package-Lists'
+    line: 'APT::Periodic::Update-Package-Lists "1";'
+
+- name: set apt upgrade interval
+  lineinfile:
+    path: /etc/apt/apt.conf.d/10periodic
+    regexp: '^APT::Periodic::Download-Upgradeable-Packages'
+    line: 'APT::Periodic::Download-Upgradeable-Packages "7";'
+
+- name: set apt autoclean interval
+  lineinfile:
+    path: /etc/apt/apt.conf.d/10periodic
+    regexp: '^APT::Periodic::AutocleanInterval'
+    line: 'APT::Periodic::AutocleanInterval "7";'
+
+- name: setup unattended upgrades
+  lineinfile:
+    path: /etc/apt/apt.conf.d/10periodic
+    line: 'APT::Periodic::Unattended-Upgrade "7";'
+    insertafter: EOF

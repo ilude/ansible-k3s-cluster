@@ -1,0 +1,27 @@
+---
+- name: Install cloud-init
+  apt:
+    pkg:
+      - cloud-init
+
+- name: Create user-data.yml cloud-init file for the cloned nodes
+  template:
+    src: templates/user-data.template.j2
+    dest: /var/lib/vz/snippets/user-data.yml
+    owner: root
+    group: root
+    mode: 0600
+
+- set_fact:
+    packages: "{{ lookup('template', 'templates/default_packages.j2') }}"
+
+- set_fact:
+    runcmds: "{{ lookup('template', 'templates/default_commands.j2') }}"
+
+- name: Create user-data.base-image.yml cloud-init file for base-image template
+  template:
+    src: templates/user-data.template.j2
+    dest: /var/lib/vz/snippets/user-data.base-image.yml
+    owner: root
+    group: root
+    mode: 0600

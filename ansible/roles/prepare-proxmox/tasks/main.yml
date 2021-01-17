@@ -1,0 +1,4 @@
+---
+- include: setup-apt-repos.yml
+- include: remove-nag.yml
+- include: setup-cloud-init.yml

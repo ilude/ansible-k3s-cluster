@@ -1,0 +1,23 @@
+---
+- name: comment out enterprise apt repo 
+  replace:
+    path: /etc/apt/sources.list.d/pve-enterprise.list
+    regexp: 'deb https://enterprise.proxmox.com/debian/pve buster pve-enterprise'
+    replace: '# deb https://enterprise.proxmox.com/debian/pve buster pve-enterprise'
+
+- name: add pve-no-subscription apt repo
+  lineinfile:
+    path: /etc/apt/sources.list
+    line: 'deb http://download.proxmox.com/debian buster pve-no-subscription'
+  register: repo_added
+
+- name: Update apt cache
+  apt: 
+    update_cache: yes 
+    upgrade: dist
+  register: apt_updated
+  when: repo_added.changed
+
+- name: Reboot the server and wait for it to come back up.
+  reboot:
+  when: apt_updated.changed

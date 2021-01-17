@@ -1,0 +1,14 @@
+---
+- name: add template to nodes list
+  set_fact:
+    nodes: "{{ nodes }} + [{{ template }}]"
+
+- name: destroy cluster nodes...
+  include_tasks: destroy-node.yml
+  vars:
+    node: "{{ item }}"
+  loop: "{{ nodes }}"
+
+- name: clear known host entries
+  shell: ssh-keygen -R {{ item.ip }}
+  loop: "{{ nodes }}"

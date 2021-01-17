@@ -1,0 +1,18 @@
+---
+- include: apt.yml
+- include: sshd.yml
+- include: swap.yml
+
+- name: setup alias l for user
+  become: no
+  lineinfile:
+    path: '~/.bashrc'
+    line: "alias l='ls --color -lha --group-directories-first'"
+    insertafter: EOF
+
+- name: setup alias l for root
+  become: yes
+  lineinfile:
+    path: '/root/.bashrc'
+    line: "alias l='ls --color -lha --group-directories-first'"
+    insertafter: EOF

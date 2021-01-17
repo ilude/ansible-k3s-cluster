@@ -1,0 +1,14 @@
+---
+- name: clone and spin up cluster nodes...
+  include_tasks: "{{ playbook_dir }}/roles/{{ ansible_role_name }}/tasks/create-node.yml"
+  vars:
+    node: "{{ item }}"
+  loop: "{{ nodes }}"
+
+- name: wait for nodes to spin up...
+  wait_for:
+    host: "{{ item.ip }}"
+    port: 22
+  become: false
+  delegate_to: localhost 
+  loop: "{{ nodes }}"

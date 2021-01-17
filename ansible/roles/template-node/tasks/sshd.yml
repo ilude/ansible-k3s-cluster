@@ -1,0 +1,21 @@
+- name: disable sshd root logins
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: "PermitRootLogin"
+    line: "PermitRootLogin no"
+  register: root_output
+
+- name: disable sshd password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    state: present
+    regexp: "^PasswordAuthentication"
+    line: "PasswordAuthentication no"
+  register: password_output
+
+- name: restart sshd
+  debug: 
+  when: root_output is changed or password_output is changed 
+  notify:
+    - restart sshd

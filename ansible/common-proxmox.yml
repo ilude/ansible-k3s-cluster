@@ -1,0 +1,38 @@
+###########################################################################
+- name: "check if template node exists"
+  stat: 
+    path: /etc/pve/nodes/pve/qemu-server/{{ template.id }}.conf
+  register: template_id_conf_file
+
+
+- name: set is_conf_file_present variable
+  set_fact:
+    is_template_present: "{{ template_id_conf_file.stat.exists }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups['all'] }}"
+
+###########################################################################
+- name: check if template node is a template image
+  shell: "grep /etc/pve/nodes/pve/qemu-server/{{ template.id }}.conf 'template: 1' | wc -l"
+  register: is_template_output
+
+
+- name: set is_template variable
+  set_fact:
+    is_template: "{{ (is_template_output.stdout == 0) | bool }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups['all'] }}"
+
+###########################################################################
+- name: check if template is running
+  shell: qm status {{ template.id }} | grep running | wc -l
+  register: is_template_running_output
+
+- name: set is_template_running variable
+  set_fact:
+   is_template_running: "{{ (is_template_running_output.stdout == 1) | bool }}"
+  delegate_to: "{{ item }}"
+  delegate_facts: True
+  with_items: "{{ groups['all'] }}"

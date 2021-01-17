@@ -1,0 +1,12 @@
+- name: "check if node {{ node.id }} exists..."
+  stat: 
+    path: /etc/pve/nodes/pve/qemu-server/{{ node.id }}.conf
+  register: nodeid_conf_file
+
+- name: destroy node {{ node.id }}
+  shell: |
+    qm stop {{ node.id }}
+    qm unlock {{ node.id }}
+    qm destroy {{ node.id }} --purge 1
+  register: destroy_output
+  when: nodeid_conf_file.stat.exists

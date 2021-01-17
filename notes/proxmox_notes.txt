@@ -1,0 +1,26 @@
+    - name: create template machine
+      community.general.proxmox_kvm:
+        proxmox_default_behavior: no_defaults
+        api_user    : root@pam
+        api_password: {{ pass }}
+        api_host    : {{ pve-host }}
+        node        : pve
+        name        : cloud-init-template
+        vmid        : 9001
+        memory      : 2048
+        bios        : ovmf
+        machine     : q35
+        cores       : 4
+        vga         : serial0
+        cicustom    : 'user=local:snippets/user-data.yml'
+        boot        : c
+        bootdisk    : scsi0
+        scsihw      : virtio-scsi-pci
+        scsi: 
+          scsi0: '{{storage-pool}}:vm-9000-disk-0'
+        net: 
+          net0: 'virtio,bridge=vmbr0'
+        ide: 
+          ide2: '{{storage-pool}}:cloudinit'
+        serial: 
+          serial0: 'socket'

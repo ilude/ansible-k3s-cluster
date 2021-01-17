@@ -1,0 +1,12 @@
+---
+- hosts: proxmox
+  tasks:
+    - set_fact: my_global_var='hello'
+
+- hosts: proxmox
+  tasks:
+    - shell: echo {{my_global_var}} 
+
+- hosts: localhost
+  tasks:
+    - shell: echo {{my_global_var}} 

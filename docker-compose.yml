@@ -1,0 +1,27 @@
+version: '2.4'
+services:
+  ansible:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        ALPINE_VERSION: '3.12.3'
+        USER: ${CLUSTER_USERNAME}
+    hostname: ansible
+    container_name: ansible
+    image: alpine:ansible_server
+    stdin_open: true
+    tty: true 
+    environment:
+      - "PUID=${PUID}"
+      - "PGID=${PGID}"
+    env_file:
+      - .env
+    volumes:
+      - ./:/app
+      - ~/.ssh:/home/${CLUSTER_USERNAME}/.ssh
+      - kubeconfig:/home/${CLUSTER_USERNAME}/.kube
+
+volumes:
+  kubeconfig:
+    external: false

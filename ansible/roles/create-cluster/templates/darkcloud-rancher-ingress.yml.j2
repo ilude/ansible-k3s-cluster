@@ -1,0 +1,22 @@
+---
+apiVersion: traefik.containo.us/v1alpha1
+kind: IngressRoute
+metadata:
+  name: ingressroutetls
+# namespace is something required.
+  namespace: cattle-system
+  annotations:
+    ingress.kubernetes.io/custom-request-headers: "X-Forwarded-Proto: https"
+spec:
+  entryPoints:
+    - websecure
+    - web
+  routes:
+#the domain name we are going to use to reach rancher.
+  - match: Host(theranch.homelab.xip.io)
+    kind: Rule
+    services:
+    - name: rancher
+      port: 80
+  tls:
+    certResolver: default

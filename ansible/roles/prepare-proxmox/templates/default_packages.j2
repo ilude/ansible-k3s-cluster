@@ -1,0 +1,29 @@
+write_files:
+  - path: /etc/profile.d/aliases
+    contents: | 
+      alias l='ls --color -lha --group-directories-first'
+package_update: true
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl 
+  - htop 
+  - iotop 
+  - libpam-systemd
+  - libssl-dev 
+  - nano 
+  - net-tools
+  - openssl 
+  - qemu-guest-agent 
+  - rsync 
+  - screen
+  - software-properties-common
+  - strace 
+  - sysstat 
+  - snmpd 
+  - sudo 
+  - tcpdump 
+  - tmux 
+  - unattended-upgrades
+  - vlan 
+  - vnstat

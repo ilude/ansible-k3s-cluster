@@ -1,0 +1,33 @@
+---
+###################################################
+- name: prepare proxmox
+  hosts: proxmox
+  become: true
+  gather_facts: no
+  pre_tasks: 
+    - import_tasks: common.yml
+  roles:
+    - prepare-proxmox
+
+###################################################
+- name: create template node
+  import_playbook: create-template.yml
+   
+###################################################
+- name: clone nodes from template image
+  hosts: proxmox
+  become: yes
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  roles:
+    - create-nodes
+
+###################################################
+- name: create cluster
+  hosts: localhost
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  roles:
+    - create-cluster

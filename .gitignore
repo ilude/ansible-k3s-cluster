@@ -1,0 +1,6 @@
+.env
+.bash_history
+.ansible/vars.yml
+ansible/kubeconfig
+ansible/kubeconfigs
+ansible/k3sup

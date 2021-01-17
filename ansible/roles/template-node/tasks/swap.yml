@@ -1,0 +1,15 @@
+- name: disable swap
+  become: yes
+  mount:
+    name: "{{ filesystem }}"
+    fstype: swap
+    state: absent
+  loop:
+    - swap
+    - none
+  loop_control:
+    loop_var: filesystem
+
+- name: turn off swap
+  become: yes
+  shell: swapoff -a

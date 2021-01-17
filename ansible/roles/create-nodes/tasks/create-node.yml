@@ -1,0 +1,21 @@
+- name: ""
+  stat: 
+    path: /etc/pve/nodes/pve/qemu-server/{{ node.id }}.conf
+  register: nodeid_conf_file
+
+- name: create node {{ node.id }}
+  shell: |
+    qm clone {{ template.id }} {{ node.id }} --name {{ node.name }}
+    qm set {{ node.id }} --onboot 1 --cores {{ node.cores }} --memory {{ node.memory }} 
+    qm set {{ node.id }} --cicustom "user=local:snippets/user-data.yml" 
+    qm set {{ node.id }} --ipconfig0 ip={{ node.ip }}/24,gw={{ cluster_gateway_ip }}
+    qm resize {{ node.id }} scsi0 96G
+  register: create_output
+  when: not nodeid_conf_file.stat.exists
+
+# - debug:
+#     msg: "{{ create_output.stdout.split('\n') }}"
+
+- name: starting node {{ node.id }}
+  shell: qm start {{ node.id }}
+  when: create_output.changed

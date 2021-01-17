@@ -1,0 +1,41 @@
+autoload -U compinit && compinit
+
+PATH=$PATH:/usr/local/bin
+
+alias dc='docker-compose'
+alias es='env | sort'
+alias k='kubectl'
+alias l='ls --color -lha --group-directories-first'
+
+source <(kubectl completion zsh )
+source <(helm completion zsh)
+complete -F __start_kubectl k
+
+# make autocompletion
+# https://unix.stackexchange.com/a/499322/3098
+
+zstyle ':completion:*:*:make:*' tag-order 'targets'
+
+plugins=(git githistory kubectl zsh-syntax-highlighting zsh-autosuggestions)
+
+# https://github.com/microsoft/WSL/issues/5065#issuecomment-682198412
+fix_wsl2_dc() {
+    for i in $(pstree -np -s $$ | grep -o -E '[0-9]+'); do
+        if [[ -e "/run/WSL/${i}_interop" ]]; then
+            export WSL_INTEROP=/run/WSL/${i}_interop
+        fi
+    done
+}
+
+# https://stackoverflow.com/a/65045491
+_git_branch() {
+  local ref=$(git symbolic-ref --short HEAD 2> /dev/null)
+  if [ -n "${ref}" ]; then
+    echo "%F{yellow}[%f%F{red}${ref}%f%F{yellow}]%f"
+  else
+    echo ""
+  fi
+}
+setopt PROMPT_SUBST
+PS1='%F{green}%n@%M%f:%F{cyan}%~$(_git_branch)$ '
+

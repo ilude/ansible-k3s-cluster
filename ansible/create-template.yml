@@ -1,0 +1,118 @@
+###################################################
+- name: create template node
+  hosts: proxmox
+  become: yes
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  tasks:
+    - block:
+        - name: check if /tmp/{{ template.image_release }}-server-cloudimg-amd64.img exists
+          stat: "path=common-{{ inventory_hostname }}.yml"
+          register: image_release
+
+        - name: download {{template.image_release}}-server-cloudimg-amd64.img
+          get_url:
+            url: "https://cloud-images.ubuntu.com/{{ template.image_release }}/current/{{ template.image_release }}-server-cloudimg-amd64.img"
+            dest: "/tmp/{{ template.image_release }}-server-cloudimg-amd64.img"
+            mode: 0440
+          when: not image_release.stat.exists
+
+        - name: create template node
+          shell: |
+            qm create {{ template.id }} --memory 2048 --cores 4 --machine q35 --bios ovmf --net0 virtio,bridge=vmbr0 
+            qm importdisk {{ template.id }} /tmp/{{template.image_release}}-server-cloudimg-amd64.img {{ cluster_storage }} > /dev/null
+            qm set {{ template.id }} --agent 1,fstrim_cloned_disks=1 
+            qm set {{ template.id }} --scsihw virtio-scsi-pci 
+            qm set {{ template.id }} --scsi0 {{ cluster_storage }}:vm-{{ template.id }}-disk-0
+            qm set {{ template.id }} --ide2 {{ cluster_storage }}:cloudinit
+            qm set {{ template.id }} --boot c --bootdisk scsi0
+            qm set {{ template.id }} --serial0 socket --vga serial0
+            qm set {{ template.id }} --ipconfig0 ip={{ template.ip }}/24,gw={{ cluster_gateway_ip }}
+            qm set {{ template.id }} --cicustom "user=local:snippets/user-data.base-image.yml"
+          register: create_output
+
+        - name: create template node output
+          debug:
+            msg: "{{ create_output.stdout.split('\n') }}"
+
+        - name: start template node
+          shell: qm start {{ template.id }}
+
+        - name: wait for template node to enter a running state
+          shell: qm status {{ template.id }} | grep running | wc -l
+          register: template_running
+          retries: 5
+          until: template_running.stdout == '1'
+
+        - name: store is_template_started
+          set_fact:
+            is_template_started: "{{ (template_running.stdout == '1') | bool }}"
+          delegate_to: "{{ item }}"
+          delegate_facts: True
+          with_items: "{{ groups['all'] }}"
+
+      when: (not is_template_present) and (not is_template)
+
+    
+
+###################################################
+- name: provision template node
+  hosts: "template_node"
+  become: yes
+  gather_facts: no
+  tasks:
+    - name: check if template node is running
+      debug:
+        msg: "running: {{is_template_running | default(false)}}"
+
+    - name: check if template node was just started
+      debug:
+        msg: "started: {{is_template_started | default(false)}}"
+
+    - block: 
+        - pause:
+            seconds: 10
+
+        - name: waiting for connection to template_node
+          wait_for_connection: 
+        
+        # - name: applying roles to template node
+        #   include_role: 
+        #     name: "{{ item }}"
+        #   with_items: 
+        #     - geerlingguy.node_exporter
+
+        - name: wait for cloud-init to complete
+          wait_for:
+            path: /var/lib/cloud/instance/boot-finished
+            state: absent
+        
+      when: is_template_running or (is_template_started is defined and is_template_started) 
+
+###################################################
+- name: create template image from template node
+  hosts: proxmox
+  become: yes
+  gather_facts: no
+  tasks:
+    - block:
+        - pause:
+            seconds: 10
+        - name: create template from vm {{ template.id }}
+          shell: |
+            qm shutdown {{ template.id }}
+            qm stop {{ template.id }}
+            qm template {{ template.id }}
+          register: stop_output
+
+        - name: create template output
+          debug:
+            msg: "{{ stop_output }}"
+
+        - name: wait for template node to enter a stopped state
+          shell: qm status {{ template.id }} | grep stopped | wc -l
+          register: template_stopped
+          retries: 10
+          until: template_stopped.stdout == '1'
+      when: is_template_running or (is_template_started is defined and is_template_started)

@@ -1,0 +1,20 @@
+#cloud-config
+manage_etc_hosts: true
+user: {{ cluster_username }}
+password: {{ cluster_password }}
+timezone: {{ cluster_timezone | default('US/Eastern') }} 
+chpasswd:
+  expire: False
+disable_root: True
+ssh_pwauth:   False
+users:
+  - name: {{ cluster_username }}
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+    {% for key in ssh_authorized_keys %}
+      - {{ key }}
+    {% endfor %}
+{{ packages | default('') }}
+runcmd:
+  - hostnamectl set-hostname k3s-`ip -o addr show dev "eth0" | awk '$3 == "inet" {print $4}' | sed -r 's!/.*!!; s!.*\.!!'`
+{{ runcmds | default('') }}

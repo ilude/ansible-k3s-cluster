@@ -1,0 +1,13 @@
+---
+- hosts: proxmox
+  become: true
+  pre_tasks:
+    - name: include all variable files ./env
+      tags: ['always']
+      include_vars: 
+        dir: env
+        extensions:
+        - yml
+        - yaml
+  roles:
+  - destroy-cluster    

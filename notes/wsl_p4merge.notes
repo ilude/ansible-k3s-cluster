@@ -1,0 +1,22 @@
+
+#https://stackoverflow.com/a/56536372/1973777
+
+diff.tool=p4merge
+merge.tool=p4merge
+difftool.p4merge.cmd=/mnt/c/Program\ Files/Perforce/p4merge.exe "$(wslpath -aw $LOCAL)" "$(wslpath -aw $REMOTE)"
+mergetool.p4merge.cmd=/mnt/c/Program\ Files/Perforce/p4merge.exe "$(wslpath -aw $BASE)" "$(wslpath -aw $LOCAL)" "$(wslpath -aw $REMOTE)" "$(wslpath -aw $MERGED)"
+mergetool.p4merge.trustexitcode=false
+
+[diff]
+  tool = p4merge
+
+[difftool "p4merge"]
+  cmd = /mnt/c/Program\ Files/Perforce/p4merge.exe "$(wslpath -aw $LOCAL)" "$(wslpath -aw $REMOTE)"
+
+[merge]
+  tool = p4merge
+
+[mergetool "p4merge"]
+  cmd = /mnt/c/Program\ Files/Perforce/p4merge.exe "$(wslpath -aw $BASE)" "$(wslpath -aw $LOCAL)" "$(wslpath -aw $REMOTE)" "$(wslpath -aw $MERGED)"
+  trustexitcode = false
+

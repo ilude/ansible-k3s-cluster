@@ -1,0 +1,36 @@
+---
+- name: generate cluster ssh key
+  command : ssh-keygen -a 100 -t ed25519 -N '' -f ~/.ssh/id_ed25519 -C "k3s@cluster.key"
+  delegate_to: localhost
+  args:
+    creates: ~/.ssh/id_ed25519
+
+###########################################################################
+- name: include all variable files ./env
+  include_vars: 
+    dir: env
+    extensions:
+    - yml
+    - yaml
+  tags: ['always']
+
+- name: include group named common tasks
+  include_tasks: common-load-optional.yml
+  loop: '{{ group_names }}'
+  loop_control:
+        loop_var: group_name
+
+- name: create template_node inventory group
+  add_host:
+    name: "{{ template.ip }}"
+    groups: template_node
+
+###########################################################################
+- name: hash $CLUSTER_PASSWORD variable
+  shell: "openssl passwd -6 {{ lookup('env', 'CLUSTER_PASSWORD') }}"
+  register: cluster_password_output
+  delegate_to: localhost
+
+- name: set cluster_password variable
+  set_fact:
+    cluster_password: "{{ cluster_password_output.stdout }}"

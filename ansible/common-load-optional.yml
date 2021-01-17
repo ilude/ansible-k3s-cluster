@@ -1,0 +1,9 @@
+---
+- name: check if optional task file exist
+  stat: "path=common-{{ group_name }}.yml"
+  register: optional_file
+  delegate_to: localhost
+
+- name: include optional task file common-{{ group_name }}.yml
+  include_tasks: common-{{ group_name }}.yml
+  when: optional_file.stat.exists

@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: install required roles
+    shell: "ansible-galaxy install {{ item }}"
+    with_items:
+      - geerlingguy.node_exporter
+
+  # - name: install required collections
+  #   shell: "ansible-galaxy collection install {{ item }}"
+  #   with_items:
+  #     - community.general
+
+  - name: install required pip packages
+    pip:
+      name: 
+      - argcomplete

@@ -1,0 +1,39 @@
+---
+
+- name: generate traefik login
+  shell: htpasswd -nb {{ lookup('env', 'TRAEFIK_USERNAME') }} {{ lookup('env', 'TRAEFIK_PASSWORD')}} | openssl base64
+  register: htpasswd_output
+
+- name: set traefik_htpasswd
+  set_fact:
+    traefik_htpasswd: "{{ htpasswd_output.stdout }}"
+
+- name: Create kubeconfigs/traefik-chart-values.yml
+  template:
+    src: "{{ playbook_dir }}/roles/{{ role_name }}/templates/traefik-chart-values.yml.j2"
+    dest: kubeconfigs/traefik-chart-values.yml
+
+- name: Create kubeconfigs/traefik-config.yml
+  template:
+    src: "{{ playbook_dir }}/roles/{{ role_name }}/templates/traefik-config.yml.j2"
+    dest: kubeconfigs/traefik-config.yml
+  register: traefik_config
+
+- name: check for existing ingress
+  shell: kubectl get services --all-namespaces | grep traefik | wc -l
+  register: traefik_exists
+
+- name: install traefik config
+  shell: |
+    helm repo add traefik https://helm.traefik.io/traefik
+    helm repo update
+
+- name: install and apply traefik configuration
+  shell: |
+    kubectl apply -f kubeconfigs/traefik-config.yml
+    helm install traefik traefik/traefik --namespace=traefik --values=kubeconfigs/traefik-chart-values.yml
+  when: traefik_exists.stdout == '0'
+
+- name: update traefik configuration
+  shell: kubectl replace -f kubeconfigs/traefik-config.yml
+  when: traefik_exists.stdout == '1'
