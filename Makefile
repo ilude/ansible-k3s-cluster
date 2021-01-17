@@ -22,5 +22,9 @@ logs:
 build: 
 	docker-compose build --progress=plain
 
+setup:
+	cp .env.sample .env
+	code . &
+
 echo:
 	env|sort
