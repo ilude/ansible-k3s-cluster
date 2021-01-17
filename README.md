@@ -8,7 +8,7 @@ It will create a docker container with a configured ansible environment and need
 * you use letsencrypt dns-01 via cloudflare
 
 ## Known Issues
-  * currently letsencrypt dns-01 is no functioning
+  * currently letsencrypt dns-01 is not functioning
 
 To start run the following which will launch vscode
 
