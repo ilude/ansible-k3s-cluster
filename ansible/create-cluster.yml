@@ -21,7 +21,7 @@
   pre_tasks:
     - import_tasks: common.yml
   roles:
-    - create-nodes
+    - clone-nodes
 
 ###################################################
 - name: create cluster
@@ -45,11 +45,4 @@
       loop_control:
         loop_var: node
 
-- name: setup LoadBalancer
-  hosts: localhost
-  become: no
-  gather_facts: no
-  pre_tasks:
-    - import_tasks: common.yml
-  roles:
-    - traefik-ingress
+- import_playbook: create-loadbalancer.yml

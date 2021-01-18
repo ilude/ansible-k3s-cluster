@@ -1,0 +1,9 @@
+---
+- name: setup LoadBalancer
+  hosts: localhost
+  become: no
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  roles:
+    - traefik-ingress

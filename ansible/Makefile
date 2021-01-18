@@ -10,5 +10,8 @@ test:
 requirements: 
 	ansible-playbook docker-requirements.yml
 
+traefik:
+	ansible-playbook create-loadbalancer.yml
+
 destroy:
 	ansible-playbook destroy-cluster.yml

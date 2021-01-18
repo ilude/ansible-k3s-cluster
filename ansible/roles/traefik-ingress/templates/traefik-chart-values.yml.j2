@@ -9,7 +9,7 @@ additionalArguments:
   - --certificatesResolvers.cloudflare.acme.dnschallenge=true
   - --certificatesresolvers.cloudflare.acme.storage=/certs/acme.json
   - --certificatesresolvers.cloudflare.acme.caserver={{ acme_endpoint[env] }}
-  - --log.level=DEBUG
+  - --log.level=INFO
 ports:
   web:
     redirectTo: websecure
