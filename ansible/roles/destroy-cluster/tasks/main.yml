@@ -12,3 +12,17 @@
 - name: clear known host entries
   shell: ssh-keygen -R {{ item.ip }}
   loop: "{{ nodes }}"
+
+- name: delete kubconfig from home directory
+  file: 
+    path: "~/.kube/config"
+    state: absent
+  become: false
+  delegate_to: localhost
+
+- name: delete kubeconfig if there are any laying around
+  file: 
+    path: "./kubeconfig"
+    state: absent
+  become: false
+  delegate_to: localhost

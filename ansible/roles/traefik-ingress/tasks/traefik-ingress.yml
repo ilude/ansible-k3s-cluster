@@ -17,21 +17,31 @@
   template:
     src: "{{ playbook_dir }}/roles/{{ role_name }}/templates/traefik-config.yml.j2"
     dest: kubeconfigs/traefik-config.yml
-  register: traefik_config
+
+- name: Create kubeconfigs/traefik-ingress.yml
+  template:
+    src: "{{ playbook_dir }}/roles/{{ role_name }}/templates/traefik-ingress.yml.j2"
+    dest: kubeconfigs/traefik-ingress.yml
 
 - name: check for existing ingress
   shell: kubectl get services --all-namespaces | grep traefik | wc -l
   register: traefik_exists
 
-- name: install traefik config
+- name: add helm traefik repo
   shell: |
     helm repo add traefik https://helm.traefik.io/traefik
     helm repo update
 
-- name: install and apply traefik configuration
-  shell: |
-    kubectl apply -f kubeconfigs/traefik-config.yml
-    helm install traefik traefik/traefik --namespace=traefik --values=kubeconfigs/traefik-chart-values.yml
+- name: setup traefik ingress
+  block:
+    - name: kubectl apply -f kubeconfigs/traefik-config.yml
+      shell: kubectl apply -f kubeconfigs/traefik-config.yml
+
+    - name: helm install traefik traefik/traefik --namespace=traefik --values=kubeconfigs/traefik-chart-values.yml
+      shell: helm install traefik traefik/traefik --namespace=traefik --values=kubeconfigs/traefik-chart-values.yml
+
+    - name: kubectl apply -f kubeconfigs/traefik-ingress.yml
+      shell: kubectl apply -f kubeconfigs/traefik-ingress.yml
   when: traefik_exists.stdout == '0'
 
 - name: update traefik configuration

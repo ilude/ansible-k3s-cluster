@@ -26,8 +26,30 @@
 ###################################################
 - name: create cluster
   hosts: localhost
+  become: no
   gather_facts: no
   pre_tasks:
     - import_tasks: common.yml
   roles:
     - create-cluster
+
+- name: snapshot nodes
+  hosts: proxmox
+  become: yes
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  tasks:
+    - include_tasks: common-snapshot-node.yml
+      loop: "{{ nodes }}"
+      loop_control:
+        loop_var: node
+
+- name: setup LoadBalancer
+  hosts: localhost
+  become: no
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  roles:
+    - traefik-ingress

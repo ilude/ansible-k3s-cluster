@@ -15,27 +15,13 @@
   ignore_errors: yes
   when: not kubeconfig_file.stat.exists
 
-- name: "recheck if ~/.kube/config file exists"
-  stat: 
-    path: ~/.kube/config
-  register: kubeconfig_file
-
 - include_tasks: create-cluster-node.yml
   loop: "{{ nodes }}"
   loop_control:
     loop_var: node
-  when: not kubeconfig_file.stat.exists
 
 - name: wait for all nodes to report ready
   shell: "kubectl get nodes -o wide | grep -v NotReady | grep Ready | wc -l"
   register: ready_count_output
   retries: 10
   until: ready_count_output.stdout|int == nodes|length
-
-- name: create kubeconfigs directory
-  file:
-    path: kubeconfigs
-    state: directory
-
-- include_tasks: metallb.yml
-- include_tasks: traefik-ingress.yml

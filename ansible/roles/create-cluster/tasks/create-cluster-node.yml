@@ -1,7 +1,7 @@
 ---
 - name: check for existing cluster
   stat: 
-    path: "{{ lookup('env', 'HOME') }}/kubeconfig"
+    path: "{{ lookup('env', 'HOME') }}/.kube/config"
   register: kubeconfig_file
 
 - name: check for running cluster node {{ node.ip }}
@@ -37,27 +37,24 @@
     msg: "master ip:{{master_ip | default('0')}}"
 
 - name: create worker node {{ node.ip }}
-  shell: k3sup join --ip {{ node.ip }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519 --local-path ~/.kube/config --server-ip {{ master_ip }} --server-user {{ cluster_username }} 
+  shell: k3sup join    --ip {{ node.ip }} {{ k3s.version | default('') }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519 --server-ip {{ master_ip }} --server-user {{ cluster_username }} 
   when: node_configured_output.stdout == '0' and master_count_output.stdout | int >= 3
 
 - name: create master node {{ node.ip }}
-  shell: k3sup join --ip {{ node.ip }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519 --server-ip {{ master_ip }} --server-user {{ cluster_username }} --server --k3s-extra-args "--node-taint CriticalAddonsOnly=true:NoExecute --no-deploy servicelb --no-deploy traefik --tls-san {{ master_ip }}"
+  shell: k3sup join    --ip {{ node.ip }} {{ k3s.version | default('') }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519 --server --server-ip {{ master_ip }} --server-user {{ cluster_username }} --k3s-extra-args "--node-taint CriticalAddonsOnly=true:NoExecute --no-deploy servicelb --no-deploy traefik --tls-san {{ master_ip }}"
   when: node_configured_output.stdout == '0' and master_count_output.stdout | int < 3 and master_count_output.stdout | int > 0
 
 - name: create initial master node {{ node.ip }}
-  shell: k3sup install --ip {{ node.ip }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519  --k3s-extra-args "--cluster-init --node-taint CriticalAddonsOnly=true:NoExecute --no-deploy servicelb --no-deploy traefik --tls-san {{ master_ip }}"
+  shell: k3sup install --ip {{ node.ip }} {{ k3s.version | default('') }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519 --local-path ~/.kube/config --k3s-extra-args "--cluster-init --node-taint CriticalAddonsOnly=true:NoExecute --no-deploy servicelb --no-deploy traefik --tls-san {{ master_ip }}"
   when: (master_ip is not defined) or (master_count_output.stdout == '0')
 
-- name: copy kubeconfig to {{ lookup('env', 'HOME') }}
-  copy:
-    src: kubeconfig
-    dest: "{{ lookup('env', 'HOME') }}/kubeconfig"
+# - name: copy kubeconfig to {{ lookup('env', 'HOME') }}
+#   copy:
+#     src: kubeconfig
+#     dest: "{{ lookup('env', 'HOME') }}/.kube/config"
 
 - name: wait for node {{node.ip}} to spin up k8s...
   shell: kubectl get nodes -o wide | grep -v NotReady | grep Ready | grep {{ node.ip }} | wc -l
   register: cluster_node_ready
-  retries: 10
+  retries: 20
   until: cluster_node_ready.stdout == '1'
-
-
-  

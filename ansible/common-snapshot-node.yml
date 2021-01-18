@@ -1,0 +1,7 @@
+- name: check for initial snapshot for node {{ node.id }}
+  shell: qm listsnapshot {{ node.id }} | grep k3s_installed | wc -l
+  register: snapshot_found
+
+- name: create initial snapshot for node {{ node.id }}
+  shell: qm snapshot {{ node.id }} k3s_installed --description "initial k3s setup"
+  when: snapshot_found.stdout == '0'

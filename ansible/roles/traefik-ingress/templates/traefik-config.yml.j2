@@ -1,0 +1,37 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: traefik
+  labels:
+    app: traefik
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cloudflare-api-credentials
+  namespace: traefik
+type: Opaque
+stringData:
+  email: {{ lookup('env', 'ACME_EMAIL') }}
+  apiKey: {{ lookup('env', 'ACME_TOKEN') }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: traefik-config
+  namespace: traefik
+data:
+  traefik-config.yaml: |
+    http:
+      middlewares:
+        headers-default:
+          headers:
+            sslRedirect: true
+            browserXssFilter: true
+            contentTypeNosniff: true
+            forceSTSHeader: true
+            stsIncludeSubdomains: true
+            stsPreload: true
+            stsSeconds: 15552000
+            customFrameOptionsValue: SAMEORIGIN

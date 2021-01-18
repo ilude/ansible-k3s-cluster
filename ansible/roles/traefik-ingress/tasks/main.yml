@@ -1,0 +1,7 @@
+- name: create kubeconfigs directory
+  file:
+    path: kubeconfigs
+    state: directory
+
+- include_tasks: "metallb.yml"
+- include_tasks: "traefik-ingress.yml"
