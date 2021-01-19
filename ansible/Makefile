@@ -10,8 +10,13 @@ test:
 requirements: 
 	ansible-playbook docker-requirements.yml
 
-traefik:
+traefik: untraefik
 	ansible-playbook create-loadbalancer.yml
+
+untraefik:
+	-kubectl delete -f kubeconfigs/traefik-ingress.yml
+	-helm uninstall traefik --namespace=traefik 
+	-kubectl delete -f kubeconfigs/traefik-config.yml
 
 destroy:
 	ansible-playbook destroy-cluster.yml
