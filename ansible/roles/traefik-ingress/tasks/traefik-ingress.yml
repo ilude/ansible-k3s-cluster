@@ -47,3 +47,11 @@
 - name: update traefik configuration
   shell: kubectl replace -f kubeconfigs/traefik-config.yml
   when: traefik_exists.stdout == '1'
+
+- name: debug acme_env
+  debug: 
+    msg: "{{ acme_env }}"
+
+- name: debug acme_endpoint[acme_env]
+  debug: 
+    msg: "{{ acme_endpoint[acme_env] }}"
