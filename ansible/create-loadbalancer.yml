@@ -15,13 +15,13 @@
         patterns: '*.yml,*.yaml'
       register: resources
 
-    - name: create cloudflare secret
-      shell: kubectl create secret generic cloudflare-api-key --from-literal=api-key.txt={{ lookup('env', 'ACME_TOKEN') }} -n cert-manager
-      ignore_errors: yes
-
     - name: remote resources
       shell: "kubectl apply -f {{ item }}"
       with_items: "{{ remote_resources }}"
+
+    - name: create cloudflare secret
+      shell: kubectl create secret generic cloudflare-api-key --from-literal=api-key.txt={{ lookup('env', 'ACME_TOKEN') }} -n cert-manager
+      ignore_errors: yes
 
     - name: local resources
       shell: "kubectl apply -f {{ item.path }}"
