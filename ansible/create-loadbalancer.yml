@@ -6,12 +6,18 @@
   vars:
     remote_resources:
       - https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.34.1/deploy/static/provider/do/deploy.yaml
+      - https://github.com/jetstack/cert-manager/releases/download/v0.16.1/cert-manager.yaml
+
   tasks:
     - name: find all yaml from roles/traefik-ingress/files/nginx
       find:
         paths: roles/traefik-ingress/files/nginx
         patterns: '*.yml,*.yaml'
       register: resources
+
+    - name: create cloudflare secret
+      shell: kubectl create secret generic cloudflare-api-key --from-literal=api-key.txt={{ lookup('env', 'ACME_TOKEN') }} -n cert-manager
+      ignore_errors: yes
 
     - name: remote resources
       shell: "kubectl apply -f {{ item }}"
