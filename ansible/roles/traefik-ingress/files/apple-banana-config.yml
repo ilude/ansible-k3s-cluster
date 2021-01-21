@@ -1,19 +1,4 @@
 ---
-kind: Pod
-apiVersion: v1
-metadata:
-  name: apple-app
-  labels:
-    app: apple
-spec:
-  containers:
-    - name: apple-app
-      image: hashicorp/http-echo
-      args:
-        - "-text=apple"
-
----
-
 kind: Service
 apiVersion: v1
 metadata:
@@ -23,21 +8,29 @@ spec:
     app: apple
   ports:
     - port: 5678 # Default port for image
-
 ---
-kind: Pod
-apiVersion: v1
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: banana-app
-  labels:
-    app: banana
+  name: apple-deployment
 spec:
-  containers:
-    - name: banana-app
-      image: hashicorp/http-echo
-      args:
-        - "-text=banana"
-
+  selector:
+    matchLabels:
+      app: apple
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: apple
+    spec:
+      containers:
+      - name: apple
+        image: hashicorp/http-echo
+        args:
+        - "-text=apple"
+        ports:
+        - containerPort: 5678
+  
 ---
 kind: Service
 apiVersion: v1
@@ -48,6 +41,28 @@ spec:
     app: banana
   ports:
     - port: 5678 # Default port for image
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: banana-deployment
+spec:
+  selector:
+    matchLabels:
+      app: banana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: banana
+    spec:
+      containers:
+      - name: banana
+        image: hashicorp/http-echo
+        args:
+        - "-text=banana"
+        ports:
+        - containerPort: 5678
 
 ---
 apiVersion: extensions/v1beta1
@@ -58,13 +73,18 @@ metadata:
     ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
-  - http:
-      paths:
-        - path: /apple
-          backend:
-            serviceName: apple-service
-            servicePort: 5678
-        - path: /banana
-          backend:
-            serviceName: banana-service
-            servicePort: 5678
+    - host: traefik.ilude.com
+      http:
+        paths:
+          - path: /apple
+            backend:
+              service:
+                name: apple-service
+                port:
+                  number: 5678
+          - path: /banana
+            backend:
+              service:
+                name: banana-service
+                port:
+                  number: 5678

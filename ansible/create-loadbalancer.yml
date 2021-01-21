@@ -3,7 +3,20 @@
   hosts: localhost
   become: no
   gather_facts: no
-  pre_tasks:
-    - import_tasks: common.yml
-  roles:
-    - traefik-ingress
+  vars:
+    remote_resources:
+      - https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.34.1/deploy/static/provider/do/deploy.yaml
+  tasks:
+    - name: find all yaml from roles/traefik-ingress/files/nginx
+      find:
+        paths: roles/traefik-ingress/files/nginx
+        patterns: '*.yml,*.yaml'
+      register: resources
+
+    - name: remote resources
+      shell: "kubectl apply -f {{ item }}"
+      with_items: "{{ remote_resources }}"
+
+    - name: local resources
+      shell: "kubectl apply -f {{ item.path }}"
+      with_items: "{{ resources.files }}"
