@@ -20,7 +20,7 @@ services:
     volumes:
       - ./:/app
       - ~/.ssh:/home/${CLUSTER_USERNAME}/.ssh
-      - kubeconfig:/home/${CLUSTER_USERNAME}/.kube
+      #- kubeconfig:/home/${CLUSTER_USERNAME}/.kube
 
 volumes:
   kubeconfig:

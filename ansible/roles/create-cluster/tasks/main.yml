@@ -1,20 +1,4 @@
 ---
-- name: create ~/.kube directory
-  file:
-    path: ~/.kube
-    state: directory
-
-- name: "check if ~/.kube/config file exists"
-  stat: 
-    path: ~/.kube/config
-  register: kubeconfig_file
-
-- name: try to fetch kubeconfig if it does not exist
-  shell: k3sup install --ip {{ nodes[0].ip }} --user {{ cluster_username }} --ssh-key ~/.ssh/id_ed25519 --local-path ~/.kube/config --skip-install
-  register: fetch_kubeconfig_output
-  ignore_errors: yes
-  when: not kubeconfig_file.stat.exists
-
 - include_tasks: create-cluster-node.yml
   loop: "{{ nodes }}"
   loop_control:

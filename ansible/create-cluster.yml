@@ -31,6 +31,7 @@
   pre_tasks:
     - import_tasks: common.yml
   roles:
+    - discover-cluster
     - create-cluster
 
 - name: snapshot nodes
@@ -45,4 +46,4 @@
       loop_control:
         loop_var: node
 
-- import_playbook: create-loadbalancer.yml
+- import_playbook: config-ingress.yml

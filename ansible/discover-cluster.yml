@@ -1,0 +1,8 @@
+- name: discover cluster
+  hosts: localhost
+  become: no
+  gather_facts: no
+  pre_tasks:
+    - import_tasks: common.yml
+  roles:
+    - discover-cluster

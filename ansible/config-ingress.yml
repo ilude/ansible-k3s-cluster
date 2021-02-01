@@ -1,9 +1,10 @@
 ---
-- name: setup LoadBalancer
+- name: setup ingress
   hosts: localhost
   become: no
   gather_facts: no
   vars:
+    ingress_action: "{{ lookup('env', 'INGRESS_ACTION') | default('apply', true) }}"
     remote_resources:
       - https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.34.1/deploy/static/provider/do/deploy.yaml
       - https://github.com/jetstack/cert-manager/releases/download/v0.16.1/cert-manager.yaml
@@ -16,13 +17,23 @@
       register: resources
 
     - name: remote resources
-      shell: "kubectl apply -f {{ item }}"
+      shell: "kubectl {{ ingress_action }} -f {{ item }}"
       with_items: "{{ remote_resources }}"
+
+    - name: check for cloudflare secret
+      shell: "kubectl get secret cloudflare-api-key -n cert-manager | grep cloudflare-api-key | wc -l"
+      register: cloudflare_secret
+
+    - name: destroy cloudflare secret
+      shell: kubectl destroy secret generic cloudflare-api-key --from-literal=api-key.txt={{ lookup('env', 'ACME_TOKEN') }} -n cert-manager
+      ignore_errors: yes
+      when: ingress_action == 'destroy' and cloudflare_secret.stdout|int == 1
 
     - name: create cloudflare secret
       shell: kubectl create secret generic cloudflare-api-key --from-literal=api-key.txt={{ lookup('env', 'ACME_TOKEN') }} -n cert-manager
       ignore_errors: yes
-
+      when: ingress_action == 'apply' and cloudflare_secret.stdout|int == 0
+    
     - name: local resources
-      shell: "kubectl apply -f {{ item.path }}"
+      shell: "kubectl {{ ingress_action }} -f {{ item.path }}"
       with_items: "{{ resources.files }}"

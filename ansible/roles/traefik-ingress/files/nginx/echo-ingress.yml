@@ -9,7 +9,7 @@ metadata:
 spec:
   tls:
   - hosts:
-    - '*.example.com'
+    - '*.ilude.com'
     secretName: echo-tls
   rules:
     - host: traefik.ilude.com
